@@ -1,0 +1,23 @@
+name: build-stl
+on:
+  workflow_dispatch:
+  push:
+    paths: ["pocket_bb_pull.scad"]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install OpenSCAD
+        run: sudo apt-get update && sudo apt-get install -y openscad xvfb
+      - name: Render STLs
+        run: |
+          mkdir -p out
+          for PART in bach_receiver tube_80 tube_120 tube_150 bend90 bend135 bend180 cone_valve_body_pull cone_plug_key lever_pull spring_leaf bell_left bell_right; do
+            xvfb-run -a openscad -o out/${PART}.stl -D PART=\"${PART}\" pocket_bb_pull.scad
+          done
+      - name: Upload STLs
+        uses: actions/upload-artifact@v4
+        with:
+          name: stls
+          path: out/*.stl
